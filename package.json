@@ -2,13 +2,22 @@
   "name": "darcula-midnight.jd",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "tsc --watch",
-    "start": "BASE_DIR=dist node ./dist/index.js",
-    "clean": "rm -rf ./dist",
-    "prebuild": "npm run clean",
-    "build": "tsc"
+    "format": "prettier --write ./",
+    "prebuild": "rm -rf ./dist",
+    "build": "tsc && npm pack"
   },
   "license": "ISC",
   "type": "module",
@@ -17,6 +26,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
+    "prettier": "^3.9.10",
     "typescript": "^7.0.2"
   }
 }
