@@ -1,12 +1,5 @@
-import "reflect-metadata"
+export { default as ApplicationContext } from "./core/bootstrap/ApplicationContext.js";
 
-import ApplicationContext from "./core/bootstrap/ApplicationContext.js"
-import Container from "./core/di/Container.js"
-import TesteController from "./api/TesteController.js"
-import TesteService from "./api/TesteService.js"
+export * from "./core/decorators/index.js";
 
-const start = async () => {
-    await ApplicationContext.init()
-}
-
-start()
+export type * from "./core/types/index.js";

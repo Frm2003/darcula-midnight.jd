@@ -1,5 +1,4 @@
-import { BeanScope } from "../types/index.js";
-
+import { BeanScope } from "../../types/index.js";
 
 export default function Scope(value: BeanScope): ClassDecorator;
 export default function Scope(value: BeanScope, target: Function): void;

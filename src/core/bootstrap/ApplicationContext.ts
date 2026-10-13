@@ -1,15 +1,27 @@
 import BeanManager from "../di/BeanManager.js";
 import Container from "../di/Container.js";
-import FactoryManager from "../di/FactoryManager.js";
 import ClassLoader from "../infra/ClassLoader.js";
+import { Token } from "../types/index.js";
 
 export default class ApplicationContext {
-    public static async init() {
-        const modules = await ClassLoader.modules()
+    private container = new Container();
 
-        BeanManager.discovery(modules)
-        FactoryManager.resolve()
+    public static async create(): Promise<ApplicationContext> {
+        const context = new ApplicationContext();
+        const modules = await ClassLoader.modules();
 
-        Container.init()
+        const beans = BeanManager.discovery(modules);
+
+        for (const bean of beans.values()) {
+            context.container.register(bean);
+        }
+
+        context.container.init();
+
+        return context;
+    }
+
+    public get<T extends object>(token: Token): T {
+        return this.container.get(token);
     }
 }

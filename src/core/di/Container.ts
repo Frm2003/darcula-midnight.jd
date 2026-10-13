@@ -1,40 +1,60 @@
-import BeanManager from "./BeanManager.js";
-import FactoryManager from "./FactoryManager.js";
-import ScopeManager from "./scope/ScopeManager.js";
-
-import { BeanDefinition, Token } from "../types/index.js";
+import { BeanDefinition, BeanScope, Factory, Token } from "../types/index.js";
+import ScopedProxyFactory from "./ScopedProxyFactory.js";
 
 export default class Container {
-    private static intances: Map<Token, object>
-    private static scopeManager: ScopeManager
+    private definitions = new Map<Token, BeanDefinition>();
+    private instances = new Map<Token, object>();
 
-    static {
-        this.scopeManager = new ScopeManager()
+    private providers: Record<BeanScope, (factory: Factory, token: Token) => object>;
+
+    constructor() {
+        this.providers = {
+            singleton: (factory, token) => {
+                const instance = factory();
+
+                this.instances.set(token, instance);
+
+                return instance;
+            },
+            transient: (factory) => ScopedProxyFactory.create(factory),
+        };
     }
 
-    public static init() {
-        const beans = BeanManager.getAll().values()
+    public get<T extends object>(token: Token): T {
+        return this.resolveBean(this.definitions.get(token)!);
+    }
 
-        for (const bean of beans) {
-            this.resolveBean(bean)
+    public resolveBean<T extends object>(bean: BeanDefinition): T {
+        if (this.instances.has(bean.token)) {
+            return this.instances.get(bean.token)! as T;
+        }
+
+        const dependencies = bean.dependencies.map((token) => {
+            const definition = this.definitions.get(token);
+
+            if (!definition) {
+                throw new Error("Bean not found");
+            }
+
+            return this.resolveBean(definition);
+        });
+
+        const factory = bean.factory.bind(null, ...dependencies);
+
+        return this.providers[bean.scope](factory, bean.token) as T;
+    }
+
+    public init(): void {
+        for (const bean of this.definitions.values()) {
+            if (bean.scope !== "singleton") {
+                continue;
+            }
+
+            this.resolveBean(bean);
         }
     }
 
-    public static get<T extends object>(token: Token): T {
-        return this.resolveBean(BeanManager.get(token))
-    }
-
-    public static resolveBean<T extends object>(bean: BeanDefinition): T {
-        const dependencies = bean.dependencies.map(token => {
-            return this.resolveBean(BeanManager.get(token))
-        })
-
-        const factory = FactoryManager.get(bean.token)
-
-        return this.scopeManager.instance(
-            factory.bind(null, ...dependencies),
-            bean.scope,
-            bean.token,
-        )
+    public register(bean: BeanDefinition): void {
+        this.definitions.set(bean.token, bean);
     }
 }
