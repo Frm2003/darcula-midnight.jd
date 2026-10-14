@@ -1,5 +1,3 @@
-export type BeanScope = "singleton" | "transient";
-
 export type BeanDefinition = {
     dependencies: Token[];
     factory: Factory;
@@ -8,6 +6,10 @@ export type BeanDefinition = {
     token: Token;
     target: DefaultClass;
 };
+
+export type BeanScope = "singleton" | "transient";
+
+export type BeanStereotype = "Controller" | "Repository" | "Service" | "";
 
 export type DefaultClass<T extends object = object> = new (...args: any[]) => T;
 

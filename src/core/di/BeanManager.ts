@@ -1,6 +1,6 @@
 import "reflect-metadata";
 
-import { BeanDefinition, BeanScope, DefaultClass, Token } from "../types/index.js";
+import { BeanDefinition, BeanScope, BeanStereotype, DefaultClass, Token } from "../types/index.js";
 
 export default class BeanManager {
     public static discovery(modules: DefaultClass[]): Map<Token, BeanDefinition> {
@@ -14,6 +14,7 @@ export default class BeanManager {
             }
 
             const scope: BeanScope | undefined = Reflect.getMetadata("SCOPE", target);
+            const stereotype: BeanStereotype | undefined = Reflect.getMetadata("STEREOTYPE", target);
 
             const dependencies: Token[] =
                 Reflect.getOwnMetadata("design:paramtypes", target) ?? [];
@@ -26,7 +27,7 @@ export default class BeanManager {
                 dependencies,
                 factory: (...deps: unknown[]) => new target(...deps),
                 scope: scope || "singleton",
-                stereoType: "",
+                stereoType: stereotype || "",
                 target,
                 token,
             });
