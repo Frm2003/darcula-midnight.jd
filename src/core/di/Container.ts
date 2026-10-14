@@ -1,4 +1,4 @@
-import { BeanDefinition, BeanScope, Factory, Token } from "../types/index.js";
+import { BeanDefinition, BeanScope, BeanStereotype, Factory, Token } from "../types/index.js";
 import ScopedProxyFactory from "./ScopedProxyFactory.js";
 
 export default class Container {
@@ -16,12 +16,45 @@ export default class Container {
 
                 return instance;
             },
-            transient: (factory) => ScopedProxyFactory.create(factory),
+            transient: (factory) => {
+                return ScopedProxyFactory.create(factory)
+            },
         };
     }
 
     public get<T extends object>(token: Token): T {
         return this.resolveBean(this.definitions.get(token)!);
+    }
+
+    public getDefinitions(stereoType: BeanStereotype | undefined = undefined): Iterable<BeanDefinition> {
+        if (!stereoType) {
+            return this.definitions.values();
+        }
+
+        const beans = new Map(this.definitions);
+
+        for (const bean of beans.values()) {
+            if (bean.stereoType == stereoType)
+                continue
+
+            beans.delete(bean.token)
+        }
+
+        return beans.values();
+    }
+
+    public init(): void {
+        for (const bean of this.definitions.values()) {
+            if (bean.scope !== "singleton") {
+                continue;
+            }
+
+            this.resolveBean(bean);
+        }
+    }
+
+    public register(bean: BeanDefinition): void {
+        this.definitions.set(bean.token, bean);
     }
 
     public resolveBean<T extends object>(bean: BeanDefinition): T {
@@ -42,19 +75,5 @@ export default class Container {
         const factory = bean.factory.bind(null, ...dependencies);
 
         return this.providers[bean.scope](factory, bean.token) as T;
-    }
-
-    public init(): void {
-        for (const bean of this.definitions.values()) {
-            if (bean.scope !== "singleton") {
-                continue;
-            }
-
-            this.resolveBean(bean);
-        }
-    }
-
-    public register(bean: BeanDefinition): void {
-        this.definitions.set(bean.token, bean);
     }
 }

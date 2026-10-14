@@ -1,7 +1,8 @@
 import BeanManager from "../di/BeanManager.js";
 import Container from "../di/Container.js";
 import ClassLoader from "../infra/ClassLoader.js";
-import { Token } from "../types/index.js";
+
+import { BeanDefinition, BeanStereotype, Token } from "../types/index.js";
 
 export default class ApplicationContext {
     private container = new Container();
@@ -23,5 +24,9 @@ export default class ApplicationContext {
 
     public get<T extends object>(token: Token): T {
         return this.container.get(token);
+    }
+
+    public getDefinitions(stereoType: BeanStereotype): Iterable<BeanDefinition> {
+        return this.container.getDefinitions(stereoType)
     }
 }
